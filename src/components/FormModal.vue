@@ -1,0 +1,23 @@
+<template>
+  <div v-if="show" class="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
+    <div class="bg-white p-9 rounded-lg shadow-lg max-w-xl w-full relative">
+      <slot></slot>
+      <button @click="closeModal" class="absolute top-2 right-2 text-2xl px-2 py-1">x</button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, toRefs } from 'vue'
+
+defineProps<{
+  show: boolean
+}>()
+
+const emit = defineEmits(['close'])
+
+const closeModal = () => {
+  console.log('Closing modal from component')
+  emit('close')
+}
+</script>

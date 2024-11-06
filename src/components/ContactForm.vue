@@ -1,0 +1,66 @@
+<template>
+  <form @submit.prevent="handleSubmit" class="flex gap-3 justify-between items-start py-2 flex-wrap">
+    <InputField v-model="contact.name" :placeholder="'Name'" :errors="v$.name.$errors" />
+    <InputField v-model="contact.phone" :placeholder="'Phone'" :errors="v$.phone.$errors" />
+    <InputField v-model="contact.email" :placeholder="'Email'" :errors="v$.email.$errors" />
+    <SubmitButton :label="isEditing ? 'Update' : 'Add'" @click="handleSubmit" />
+  </form>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useVuelidate } from '@vuelidate/core'
+import { required, email } from '@vuelidate/validators'
+import InputField from './InputField.vue'
+import SubmitButton from './SubmitButton.vue'
+
+interface Contact {
+  id: number
+  name: string
+  phone: string
+  email: string
+}
+
+const contact = ref<Contact>({
+  id: 0,
+  name: '',
+  phone: '',
+  email: '',
+})
+
+const isEditing = ref(false)
+
+const rules = {
+  name: { required },
+  phone: { required },
+  email: { required, email },
+}
+
+const v$ = useVuelidate(rules, contact)
+
+const emit = defineEmits(['addContact', 'updateContact'])
+
+const handleSubmit = async () => {
+  const isFormCorrect = await v$.value.$validate()
+  if (!isFormCorrect) return
+
+  if (isEditing.value) {
+    emit('updateContact', contact.value)
+  } else {
+    contact.value.id = Date.now()
+    emit('addContact', contact.value)
+  }
+
+  contact.value = { id: 0, name: '', phone: '', email: '' }
+  isEditing.value = false
+  v$.value.$reset()
+  v$.value.$touch() // Сброс состояния ошибок
+}
+
+const editContact = (contactToEdit: Contact) => {
+  contact.value = { ...contactToEdit }
+  isEditing.value = true
+}
+
+defineExpose({ editContact })
+</script>
